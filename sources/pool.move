@@ -1,16 +1,10 @@
 /// A flash loan that works for any Coin type
 module lesson9::flash_lender {
     use sui::tx_context::{Self, TxContext};
-    use sui::coin::{Self, Coin, CoinMetadata};
-    use sui::balance::{Self, Supply, Balance};
+    use sui::coin::{Self, Coin};
+    use sui::balance::{Self, Balance};
     use sui::object::{Self,UID, ID};
     use sui::transfer;
-    use sui::math;
-    use sui::object_bag::{Self, ObjectBag};
-    use sui::event;
-    use sui::clock::{Self, Clock};
-    use sui::pay;
-
     const EInsufficientFunds: u64 = 1;
     const EInvalidReceipt: u64 = 2;
     const EInvalidRepayment: u64 = 3;
@@ -41,7 +35,7 @@ module lesson9::flash_lender {
     }
 
     fun init(
-        ctx: &mut TxContext
+        _: &mut TxContext
     ) {}
 
     // === Creating a flash lender ===
@@ -63,9 +57,9 @@ module lesson9::flash_lender {
     }
 
     /// Giống như `new`, nhưng chuyển `AdminCap` cho người gửi giao dịch
+    #[lint_allow(self_transfer)]
     public entry fun create<T>(to_lend: Coin<T>, fee: u64, ctx: &mut TxContext) {
-        let admin_cap = new(coin::into_balance<T>(to_lend), fee, ctx);
-        transfer::transfer(admin_cap, tx_context::sender(ctx));
+        transfer::transfer(new(coin::into_balance<T>(to_lend), fee, ctx), tx_context::sender(ctx));
     }
 
    /// Yêu cầu một khoản vay với `amount` từ `lender`. `Receipt<T>`
